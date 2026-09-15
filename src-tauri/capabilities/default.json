@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "书架/阅读/设置/题材/更换封面窗口的能力：核心事件 + 原生文件对话框 + 自制标题栏窗口控制",
+  "windows": ["main", "reader", "settings", "genre", "cover"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-is-maximized",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging"
+  ]
+}

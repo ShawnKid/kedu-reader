@@ -1,0 +1,89 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "苛读",
+  "mainBinaryName": "苛读",
+  "version": "1.1.0",
+  "identifier": "net.kedu.reader.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "苛读",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 640,
+        "minHeight": 480,
+        "decorations": false,
+        "shadow": false,
+        "transparent": true,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; ipc: http://ipc.localhost; img-src 'self' data: http://reader-res.localhost reader-res: http://shelf-cover.localhost shelf-cover:; connect-src 'self' ipc: http://ipc.localhost http://book-file.localhost book-file: http://reader-res.localhost reader-res:; style-src 'self' 'unsafe-inline'; font-src 'self' data: http://reader-res.localhost reader-res:; script-src 'self'; worker-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "category": "Productivity",
+    "shortDescription": "本地优先的桌面电子书阅读器",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "resources": {
+      "icons/file-epub.ico": "file-epub.ico",
+      "icons/file-mobi.ico": "file-mobi.ico",
+      "icons/file-azw3.ico": "file-azw3.ico",
+      "icons/file-fb2.ico": "file-fb2.ico",
+      "icons/file-cbz.ico": "file-cbz.ico"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "installerHooks": "windows/installer-hooks.nsh"
+      }
+    },
+    "fileAssociations": [
+      {
+        "name": "EPUB",
+        "ext": ["epub"],
+        "description": "EPUB 电子书",
+        "role": "Editor",
+        "rank": "None"
+      },
+      {
+        "name": "MOBI",
+        "ext": ["mobi", "prc", "azw"],
+        "description": "MOBI / Kindle 电子书",
+        "role": "Editor",
+        "rank": "None"
+      },
+      {
+        "name": "AZW3",
+        "ext": ["azw3", "kf8"],
+        "description": "AZW3 / KF8 电子书",
+        "role": "Editor",
+        "rank": "None"
+      },
+      {
+        "name": "FB2",
+        "ext": ["fb2", "fbz"],
+        "description": "FictionBook 电子书",
+        "role": "Editor",
+        "rank": "None"
+      },
+      {
+        "name": "CBZ",
+        "ext": ["cbz"],
+        "description": "CBZ 漫画",
+        "role": "Editor",
+        "rank": "None"
+      }
+    ]
+  }
+}
