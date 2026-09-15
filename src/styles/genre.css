@@ -1,0 +1,276 @@
+/* ============================================================
+   独立题材设置窗口（label=genre，DOM 由 genre-window.ts 构建）
+   复用设置窗口的 sw-titlebar / win-btn / sw-btn 基础样式
+   ============================================================ */
+
+/* 主区改为纵向布局：头部信息 + 已选 chips + 树 + 底部操作栏 */
+body.genre-page #sw-body {
+  padding: 0;
+  gap: 0;
+}
+
+/* 组件自带 display:flex/grid 会压过 UA 的 [hidden]，过滤隐藏必须强制生效 */
+.genre-page [hidden] {
+  display: none !important;
+}
+
+#gw-head {
+  padding: 14px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+#gw-book {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#gw-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* 搜索行：输入框 + 匹配计数（题材多时靠关键词定位） */
+#gw-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gw-search-box {
+  position: relative;
+  flex: 1;
+  height: 34px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color var(--dur-fast) ease;
+}
+
+.gw-search-box:focus-within {
+  border-color: var(--accent);
+}
+
+.gw-search-box svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--fg-muted);
+  pointer-events: none;
+}
+
+.gw-search-box input {
+  width: 100%;
+  height: 100%;
+  padding: 0 12px 0 32px;
+  font-size: 13px;
+  color: var(--fg);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.gw-search-box input::placeholder {
+  color: var(--fg-muted);
+}
+
+/* 去掉原生 search 的清除按钮，避免与自定义清空逻辑打架 */
+.gw-search-box input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#gw-search-meta {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+  min-width: 4.5em;
+  text-align: right;
+}
+
+/* 搜索无结果时的空态 */
+#gw-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--fg-muted);
+  padding: 32px 16px;
+}
+
+/* 已选题材 chips：横向换行排列，× 可取消勾选 */
+#gw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.gw-chip-x {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.gw-chip-x:hover {
+  color: var(--danger);
+}
+
+/* 题材树：滚动区 */
+#gw-tree {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 6px 0;
+}
+
+/* 维度/子组折叠头 */
+.gw-dim-head,
+.gw-sub-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--fg);
+  cursor: pointer;
+  text-align: left;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.gw-dim-head {
+  font-weight: 600;
+  font-size: 14px;
+  background: var(--bg-soft);
+}
+
+.gw-sub-head {
+  padding-left: 26px;
+  color: var(--fg-muted);
+}
+
+.gw-dim-head:hover,
+.gw-sub-head:hover {
+  color: var(--accent);
+}
+
+.gw-arrow {
+  font-size: 11px;
+  width: 12px;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+/* 折叠态：箭头转向 + 隐藏内容 */
+.gw-dim.collapsed > .gw-body.collapsed,
+.gw-sub.collapsed > .gw-tag-grid.collapsed {
+  display: none;
+}
+
+.gw-dim.collapsed .gw-dim-head .gw-arrow,
+.gw-sub.collapsed .gw-sub-head .gw-arrow {
+  transform: rotate(-90deg);
+}
+
+.gw-head-name {
+  flex-shrink: 0;
+}
+
+.gw-count {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+/* 标签复选框：自适应多列网格，紧凑排列 */
+.gw-tag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 4px 10px;
+  padding: 2px 16px 10px 40px;
+}
+
+.gw-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.gw-tag:hover {
+  color: var(--accent);
+}
+
+.gw-tag input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.gw-tag span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 底部操作栏 */
+#gw-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-soft);
+}
+
+#gw-count {
+  flex: 1;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* 主操作按钮：主题色填充 */
+.sw-btn.accent {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sw-btn.accent:hover {
+  opacity: 0.88;
+}
+

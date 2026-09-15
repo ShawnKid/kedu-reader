@@ -1,0 +1,317 @@
+/* ============================================================
+   阅读区
+   ============================================================ */
+
+#reader {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  /* 卷轴卷绕（滚动模式「自然」效果）：上卷轴半径 = 直径 66 的一半，
+     与 scroll-curl.ts 的常量 R 保持一致 */
+  --curl-radius: 33px;
+  /* 字体族单独成变量：main.ts::applySettings 按设置覆盖（用户所选字体在前，本默认栈殿后补缺字回退）。
+     黑体系回退链与 main.ts::READER_FONT_STACK 保持一致：微软雅黑缺失时回退到 SimHei/黑体/思源黑体等其他黑体 */
+  --reader-font-family: "Georgia", "Noto Serif SC", "Microsoft YaHei", "微软雅黑", "SimHei", "黑体", "思源黑体", "Source Han Sans SC", serif;
+  --reader-font: var(--reader-font-size) / var(--reader-line-height) var(--reader-font-family);
+}
+
+/* 滚动模式 */
+#scroll-view {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: var(--reader-margin);
+  font: var(--reader-font);
+  user-select: text;
+}
+
+/* 卷轴卷绕（滚动效果=自然）：主区裁掉顶部卷绕带（y < 半径），由 #scroll-curl
+   显示该带的卷绕形态；内容顶部多留出一段卷轴空间（scroll=0 时纸顶恰在切线上，
+   与 demo 挂轴模型一致），切线处两侧像素级连续 */
+#scroll-view.curl {
+  clip-path: inset(var(--curl-radius) 0 0 0);
+  padding-top: calc(var(--curl-radius) + var(--reader-margin));
+}
+
+/* 卷绕带：克隆行窗口的舞台。perspective 让卷绕产生真实 3D 透视（demo 同款 900px），
+   pointer-events:none 保证点击/选择穿透回主区 */
+#scroll-curl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--curl-radius);
+  overflow: hidden;
+  pointer-events: none;
+  perspective: 900px;
+  perspective-origin: 50% var(--curl-radius);
+  user-select: none;
+}
+
+/* 固定条带窗口：圆柱面上的弦段。细小同源重叠覆盖合成层的抗锯齿细缝。 */
+.curl-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* 复刻滚动容器的内容盒，内部保留完整 .scroll-chapter 与书内样式层级。
+   无单位行高必须保留，否则上标等小字号元素会改变正文行盒高度。 */
+.curl-shell {
+  position: absolute;
+  top: 0;
+  display: flow-root;
+  box-sizing: border-box;
+  font: var(--reader-font);
+}
+
+/* 框架字号/行距：提高特异性，盖住「跟随图书设定」作用域根上的 body{font-size/line-height}
+   （部分书在 body 写死字号，会锁死阅读器的字号滑条） */
+div#page-host,
+section.scroll-chapter {
+  font-size: var(--reader-font-size);
+  line-height: var(--reader-line-height);
+}
+
+section.scroll-chapter {
+  /* 滚动栏宽由设置驱动（main.ts 写入 --scroll-column-width），窄窗口时随窗口收缩 */
+  max-width: var(--scroll-column-width, 720px);
+  margin: 0 auto 48px;
+}
+
+.chapter-title {
+  font-size: 1.4em;
+  margin: 24px 0 16px;
+  color: var(--fg);
+}
+
+/* 分页模式 */
+.page-turn-overlay {
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--bg);
+  contain: strict;
+}
+
+#page-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  padding: var(--reader-margin) 0;
+  /* 左右按 host 外边距（页边距 + 56px 翻页按钮留白）硬裁剪：
+     margin 留白属于页面留白，不允许渲染相邻页文字——否则当
+     留白 > 列间距 48px（页边距+56 恒成立）时，前一页末列 /
+     后一页首列会从两侧留白漏出（页边距 0 时漏 8px）。 */
+  clip-path: inset(0 calc(var(--reader-margin) + 56px));
+}
+
+#page-host {
+  font-family: var(--reader-font-family);
+}
+
+/* 框架布局：提高特异性盖住「跟随图书设定」作用域根上的 body 规则。
+   书籍 body→#page-host 后与 #page-host 同权重且注入更晚会胜出；
+   margin 被改成 0 后可用宽度撑满视口，clip-path 仍按页边距裁切 → 两侧文字被遮挡。 */
+div#page-host {
+  /* 宽高/列宽由 paginator.ts 动态设置 */
+  column-fill: auto;
+  height: 100%;
+  user-select: text;
+  font-size: var(--reader-font-size);
+  line-height: var(--reader-line-height);
+  /* 水平留白用 margin 而非 padding：padding 会挤占列的内容盒宽度，
+     导致实际列宽与 paginator 计算的步长不一致（下一页文字漏出）。
+     在页边距基础上左右再让 56px 给悬浮翻页按钮（44px 宽 + 8px 贴边 + 余量），
+     避免半透明按钮压在文字上；paginator 读取 computed margin 自适应列数 */
+  margin: 0 calc(var(--reader-margin) + 56px);
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+}
+
+/* 书籍正文通用样式（来自后端 HTML）；#scroll-curl 为卷绕克隆的样式作用域 */
+#page-host p,
+:is(#scroll-view, #scroll-curl) p {
+  margin: 0 0 0.8em;
+  text-align: justify;
+}
+
+#page-host img,
+:is(#scroll-view, #scroll-curl) img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 8px auto;
+}
+
+#page-host h1, #page-host h2, #page-host h3,
+:is(#scroll-view, #scroll-curl) h1, :is(#scroll-view, #scroll-curl) h2, :is(#scroll-view, #scroll-curl) h3 {
+  line-height: 1.35;
+}
+
+.cbz-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  break-inside: avoid;
+}
+
+.cbz-loading {
+  color: var(--fg-muted);
+  font-size: 13px;
+}
+
+/* 边缘翻页热区：整条左右边缘可点击翻页（cursor 提示可点） */
+.page-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 64px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.page-zone.left {
+  left: 0;
+  justify-content: flex-start;
+}
+
+.page-zone.right {
+  right: 0;
+  justify-content: flex-end;
+}
+
+/* 翻页按钮：SVG 箭头，隐形浮层；进入对应热区才浮现（按钮本身不接收指针事件，
+   悬停/点击均落在热区上） */
+.page-btn {
+  width: 44px;
+  height: 72px;
+  margin: 0 10px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  color: var(--fg);
+  cursor: pointer;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 14px var(--shadow);
+  pointer-events: none;
+  transition: opacity var(--dur-slow) var(--ease), color var(--dur-fast) ease,
+    scale var(--dur-fast) ease;
+}
+
+.page-btn svg {
+  width: 26px;
+  height: 26px;
+}
+
+.page-zone:hover .page-btn {
+  opacity: 0.85;
+  color: var(--accent);
+}
+
+.page-zone:active .page-btn {
+  scale: 0.96;
+}
+
+/* 欢迎页 */
+#welcome {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--fg-muted);
+}
+
+/* 品牌化开场：线描书本插画替代 emoji 图标 */
+.welcome-icon {
+  color: var(--accent);
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.welcome-icon svg {
+  width: 58px;
+  height: 58px;
+}
+
+.welcome-title {
+  margin: 0;
+  font-size: 15px;
+  color: var(--fg);
+}
+
+.welcome-sub {
+  margin: 0;
+  font-size: 12px;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* 加载 / 错误 */
+#loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  z-index: 20;
+  color: var(--fg-muted);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#error-box {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 20;
+  background: var(--bg);
+}
+
+#error-text {
+  color: var(--danger);
+  max-width: 60%;
+  text-align: center;
+  white-space: pre-wrap;
+}
+

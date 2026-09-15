@@ -1,0 +1,33 @@
+/* ============================================================
+   目录侧边栏
+   ============================================================ */
+
+#toc {
+  width: 260px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-soft);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.toc-item {
+  padding: 9px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toc-item:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.toc-item.active {
+  color: var(--accent);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-left: 3px solid var(--accent);
+}
+

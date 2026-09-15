@@ -1,0 +1,726 @@
+/* ============================================================
+   书架视图
+   ============================================================ */
+
+#shelf-view {
+  display: flex;
+  height: calc(100% - 48px);
+}
+
+/* 左侧分类栏：与主区靠底色差异区分；右缘 48px 在背景层直接渐变到主区底色，
+   内容浮于渐变之上，过渡均匀无痕 */
+#shelf-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: linear-gradient(to right, var(--bg-soft) calc(100% - 48px), var(--bg) 100%);
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.shelf-side-head {
+  font-size: 12px;
+  color: var(--fg-muted);
+  padding: 0 20px 8px;
+}
+
+/* 品牌区：logo 顶到窗口最上方，「苛读」字样置于 logo 之下（图1） */
+.shelf-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 22px 0 16px;
+  flex-shrink: 0;
+}
+
+.shelf-brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  text-indent: 6px; /* 抵消末字后的字间距，使视觉居中 */
+  color: var(--accent);
+  user-select: none;
+}
+
+/* 侧栏顶部 logo（品牌区内、苛读字样上方）：圆角矩形、水平居中 */
+#shelf-logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0;
+  object-fit: contain;
+  border-radius: 14px;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 「添加图书」：圆角矩形描边按钮，强调色文字（参考稿样式） */
+.shelf-add-btn {
+  margin: 0 12px 16px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--dur-fast) ease, opacity var(--dur-fast) ease;
+}
+
+.shelf-add-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.shelf-add-btn:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.shelf-add-btn:active {
+  opacity: 0.8;
+}
+
+#shelf-cats {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* 分类项：圆角矩形（参考稿样式），激活态为强调色软底 */
+.shelf-cat {
+  margin: 0 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease,
+    opacity var(--dur-fast) ease;
+}
+
+.shelf-cat:hover {
+  background: color-mix(in srgb, var(--fg) 7%, transparent);
+}
+
+.shelf-cat.active {
+  color: var(--accent);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+/* 新建分类：整行可点击（复用 .shelf-cat 行高/圆角/hover），内部仅一枚 + 图标 */
+.shelf-cat-add {
+  display: flex;
+  align-items: center;
+  color: var(--fg-muted);
+}
+
+.shelf-cat-add svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.shelf-cat-add:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+/* 长按拖拽中的分类项：半透明 + 强调色底提示拖拽态。
+   pointer-events:none 是排序命中的关键——否则 elementFromPoint 会打到拖拽项自己 */
+.shelf-cat.dragging {
+  opacity: 0.55;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  cursor: grabbing;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 侧栏底部：统计/设置 圆角矩形描边按钮（与「添加图书」同构、弱化配色）；
+   不画分割线，仅以留白与分类列表自然分区 */
+.shelf-side-footer {
+  flex-shrink: 0;
+  padding: 6px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shelf-footer-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.shelf-footer-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.shelf-footer-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* 右侧主区 */
+#shelf-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 主区头部（黑框标准）：第一行 = 分类标题（数量），落在窗控条内靠左；
+   第二行 = 通栏搜索框 + 右侧快速排序下拉 */
+#shelf-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 24px 6px;
+}
+
+#shelf-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--fg);
+  line-height: 1.3;
+  user-select: none;
+}
+
+#shelf-count {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--fg-muted);
+  margin-left: 8px;
+}
+
+#shelf-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 书架搜索框：外壳承载边框，内部仅一枚搜索图标（无占位文字）；
+   点击即输入，focus-within 时外壳高亮 */
+.shelf-search-box {
+  position: relative;
+  flex: 1;
+  height: 36px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color var(--dur-fast) ease;
+}
+
+.shelf-search-box:focus-within {
+  border-color: var(--accent);
+}
+
+.shelf-search-box svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--fg-muted);
+  pointer-events: none;
+}
+
+.shelf-search-box input {
+  width: 100%;
+  height: 100%;
+  padding: 0 12px 0 36px;
+  font-size: 13px;
+  color: var(--fg);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+/* 快速排序按钮：仅一枚排序图标，点击弹菜单；与搜索框等高的幽灵圆角矩形 */
+.shelf-sort-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.shelf-sort-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.shelf-sort-btn:hover,
+.shelf-sort-btn.open {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tb-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.tb-btn.primary:hover {
+  opacity: 0.9;
+}
+
+/* 封面网格。
+   卡片基准尺寸 = 原尺寸 × 1.1（角标/评分可读性）；实际大小再乘 --shelf-scale
+   （书架卡片大小设置：缩放 = 滑块值/30，前端钳制 0.5~3，缺省 1 = 基准）。 */
+#shelf-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: calc(22px * var(--shelf-scale, 1));
+  display: grid;
+  grid-template-columns: repeat(auto-fill, calc(145px * var(--shelf-scale, 1)));
+  grid-auto-rows: min-content;
+  gap: calc(26px * var(--shelf-scale, 1)) calc(22px * var(--shelf-scale, 1));
+  /* 行末放不下整张卡片时，把剩余宽度均摊进列间隔（卡片尺寸不变，左缘对齐） */
+  justify-content: space-between;
+  align-content: start;
+}
+
+.shelf-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 14px;
+  padding: 80px 0;
+}
+
+.shelf-card {
+  width: calc(145px * var(--shelf-scale, 1));
+  cursor: pointer;
+  position: relative;
+}
+
+/* 网格入场：逐卡 stagger（shelf.ts 渲染时写入 animation-delay；搜索过滤时不加） */
+.shelf-card.card-enter {
+  animation: cardIn 0.3s var(--ease) backwards;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+.shelf-cover {
+  width: calc(145px * var(--shelf-scale, 1));
+  height: calc(194px * var(--shelf-scale, 1));
+  border-radius: calc(9px * var(--shelf-scale, 1));
+  overflow: hidden;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px var(--shadow);
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, scale var(--dur-fast) ease;
+}
+
+.shelf-card:hover .shelf-cover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+/* 按压反馈：点击瞬间轻微收缩 */
+.shelf-card:active .shelf-cover {
+  scale: 0.97;
+}
+
+.shelf-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* 封面加载淡入（占位图替换路径无 img，不受影响） */
+  animation: fadeIn 0.35s ease;
+}
+
+/* 无封面占位：极简装帧风 —— 统一的书本图形居中，底部格式印记 */
+.shelf-cover.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(13px * var(--shelf-scale, 1)) calc(11px * var(--shelf-scale, 1));
+  background: linear-gradient(170deg, color-mix(in srgb, var(--accent) 7%, var(--bg-soft)), var(--bg-soft) 62%);
+}
+
+/* 书本图形：logo/book.svg 描摹稿（纯线稿、全透明底），夜间主题反相成夜览配色
+   选择器带 img.ph-art 提升优先级，避免被上面 .shelf-cover img 的
+   width/height:100% + object-fit:cover 拉伸成铺满裁切（顶部黑弧的根源） */
+.shelf-cover img.ph-art {
+  margin: auto 0;
+  width: calc(96px * var(--shelf-scale, 1));
+  height: auto;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+body[data-theme="dark"] .ph-art {
+  filter: invert(1);
+}
+
+/* 底部格式印记：细边框小圆角章，呼应出版信息而非报错占位 */
+.ph-format {
+  font-size: calc(10px * var(--shelf-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--fg-muted);
+  padding: calc(2px * var(--shelf-scale, 1)) calc(8px * var(--shelf-scale, 1));
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+/* 角标：续读 / 读完 */
+.badge {
+  position: absolute;
+  top: calc(7px * var(--shelf-scale, 1));
+  right: calc(7px * var(--shelf-scale, 1));
+  font-size: calc(11px * var(--shelf-scale, 1));
+  padding: calc(2px * var(--shelf-scale, 1)) calc(8px * var(--shelf-scale, 1));
+  border-radius: 999px;
+  color: #fff;
+}
+
+.badge-continue {
+  background: var(--accent);
+}
+
+/* 评分角标：封面左下角，避免与右上角「续读」重叠 */
+.badge-rating {
+  top: auto;
+  right: auto;
+  left: calc(7px * var(--shelf-scale, 1));
+  bottom: calc(7px * var(--shelf-scale, 1));
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* 进度条 */
+.shelf-progress {
+  height: calc(3px * var(--shelf-scale, 1));
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: calc(4px * var(--shelf-scale, 1));
+  overflow: hidden;
+}
+
+.shelf-progress-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+/* 读完的书：进度条填充转绿（替代原「读完」角标）。
+   填充色走 --success-bar（护眼绿主题覆盖为亮绿，与豆沙绿 accent 区分）；
+   回退到元素处解析的 --success——不能在 :root 用 var(--success) 做默认值：
+   --success 定义在 body[data-theme] 上，root 处解析为 invalid 会全局失效 */
+.shelf-progress-fill.done {
+  background: var(--success-bar, var(--success));
+}
+
+.shelf-title {
+  margin-top: calc(9px * var(--shelf-scale, 1));
+  font-size: calc(14px * var(--shelf-scale, 1));
+  line-height: 1.35;
+  height: calc(39px * var(--shelf-scale, 1));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.shelf-meta {
+  font-size: calc(12px * var(--shelf-scale, 1));
+  color: var(--fg-muted);
+  margin-top: calc(2px * var(--shelf-scale, 1));
+  display: flex;
+  justify-content: space-between;
+  gap: calc(7px * var(--shelf-scale, 1));
+}
+
+/* ────────────────────────── 豆瓣式五星评分弹层 ────────────────────────── */
+
+#rating-panel {
+  position: fixed;
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px var(--shadow);
+}
+
+.rp-label {
+  min-height: 18px;
+  font-size: 13px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 两层星星：灰底层定布局，金色层按百分比宽度裁切 = 任意 0.1 星值 */
+.rp-stars {
+  position: relative;
+  width: 329px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.rp-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 1px;
+}
+
+.rp-layer svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.rp-bg {
+  color: color-mix(in srgb, var(--fg) 16%, transparent);
+}
+
+.rp-fill {
+  color: var(--warning);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rp-clear {
+  border: none;
+  background: none;
+  padding: 2px 6px;
+  font-size: 12px;
+  color: var(--danger);
+  cursor: pointer;
+}
+
+.rp-clear:hover {
+  text-decoration: underline;
+}
+
+/* 右键菜单（#ctx-menu = 书架/阅读页；#np-menu = 笔记面板条目；#pdf-menu = PDF 缩放；
+   #tb-menu = 顶栏溢出菜单） */
+#ctx-menu,
+#np-menu,
+#pdf-menu,
+#tb-menu {
+  position: fixed;
+  z-index: 200;
+  min-width: 160px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px var(--shadow);
+  padding: 4px;
+  animation: popIn var(--dur-fast) var(--ease);
+  transform-origin: top left;
+}
+
+.ctx-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.ctx-item:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.ctx-item.danger {
+  color: var(--danger);
+}
+
+/* 字体选择子菜单：长列表内部滚动；分组标题弱化、当前选中项高亮 */
+#ctx-menu.ctx-scroll,
+#np-menu.ctx-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+/* PDF 缩放菜单：长列表同规则 */
+#pdf-menu.ctx-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.ctx-heading {
+  padding: 6px 12px 2px;
+  font-size: 11px;
+  color: var(--fg-muted);
+  cursor: default;
+}
+
+.ctx-item.active {
+  color: var(--accent);
+}
+
+/* 书架模态输入框（替代原生 prompt 的自定义弹窗） */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn var(--dur-fast) ease;
+}
+
+.modal-dialog {
+  width: 320px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 48px var(--shadow);
+  padding: 16px;
+  animation: popIn var(--dur) var(--ease);
+}
+
+.modal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+
+.modal-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+}
+
+.modal-input:focus {
+  border-color: var(--accent);
+}
+
+/* 确认框正文（confirmModal） */
+.modal-message {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg);
+  word-break: break-all;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.modal-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease, scale var(--dur-fast) ease;
+}
+
+.modal-btn:active {
+  scale: 0.96;
+}
+
+.modal-btn:hover {
+  background: var(--bg-soft);
+}
+
+.modal-btn.primary {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.modal-btn.primary:hover {
+  opacity: 0.9;
+  background: var(--accent);
+}
+
+.modal-btn.primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 危险操作确认按钮（删除分类 / 移除出书架） */
+.modal-btn.danger {
+  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.modal-btn.danger:hover {
+  opacity: 0.9;
+  background: var(--danger);
+}
+
+/* 轻提示（window.alert 在 Tauri 2 WebView2 下不弹出，错误/结果反馈改用非阻塞 toast） */
+.shelf-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 56px;
+  transform: translateX(-50%);
+  max-width: 70%;
+  padding: 10px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-line;
+  color: #fff;
+  background: rgba(24, 24, 27, 0.92);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 400;
+  transition: opacity 0.3s;
+}
+
+.shelf-toast.hide {
+  opacity: 0;
+}
+

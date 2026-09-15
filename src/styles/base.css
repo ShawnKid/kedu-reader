@@ -1,0 +1,384 @@
+/* ============================================================
+   基础布局
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+/* ── 自研滚动条：替换原生样式，随皮肤主题变量变色 ──
+   轨道透明融入背景，滑块用主题边框色圆角胶囊，悬停加深为次要前景色 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--fg-muted);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* 圆角窗口：窗口真透明（tauri transparent），由 body 绘制圆角面板。
+   html 不能留底色，否则四角透出白色而非桌面 */
+html {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  /* 注意：不能把底色画在 body 上——CSS 规范会把 body 背景上提为画布背景，
+     以矩形铺满视口导致圆角失效（四角变实色）。底色由 body::before 绘制 */
+  background: transparent;
+  color: var(--fg);
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  user-select: none;
+  /* 窗口态：8px 圆角 + 1px 弱描边（弧度克制，贴近 Win11 原生） */
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fg) 16%, transparent);
+}
+
+/* 圆角面板底色：伪元素不会被上提为画布底色，四角真正透出桌面 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg);
+  border-radius: inherit;
+}
+
+/* 最大化：铺满工作区，直角无边 */
+body.win-maximized {
+  border-radius: 0;
+  border-color: transparent;
+}
+
+/* ── 无障碍与反馈 ──
+   键盘导航焦点环（鼠标点击不出现）；主题换肤过渡；减弱动态降级 */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* 主题切换动画：html.theme-anim 由 main.ts / settings-window.ts 在换肤瞬间挂载，
+   全局颜色类属性过渡一个短暂窗口，避免常驻 * 过渡拖慢首帧渲染 */
+html.theme-anim,
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition: background-color var(--dur) ease, color var(--dur) ease,
+    border-color var(--dur) ease, fill var(--dur) ease, stroke var(--dur) ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 弹层/视图通用入场动效（模态、菜单、视图切换） */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes viewIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 视图切换（书架 ⇄ 阅读 ⇄ 统计）入场：crossfade + 轻微上浮 */
+.view-enter {
+  animation: viewIn var(--dur) var(--ease);
+}
+
+.hidden {
+  display: none !important;
+}
+
+#drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 3px dashed var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-hint {
+  font-size: 22px;
+  color: var(--accent);
+  background: var(--bg);
+  padding: 16px 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px var(--shadow);
+}
+
+/* 顶栏（同时承担自制标题栏）；overflow:hidden 配合窄窗收纳逻辑。
+   position:relative 承载底部进度细条 */
+#topbar {
+  position: relative;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 0 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+
+/* 书架页（图1）：顶栏退化为主区上方的悬浮窗控条——不再横贯整窗占 48px，
+   侧栏（logo/品牌区）直抵窗口顶部；书架/品牌字在顶栏的位置让位给侧栏 */
+body[data-view="shelf"] #topbar {
+  position: absolute;
+  top: 0;
+  left: 200px; /* = #shelf-sidebar 宽度 */
+  right: 0;
+  border-bottom: none;
+  background: transparent;
+  z-index: 30;
+}
+
+body[data-view="shelf"] #app-brand,
+body[data-view="shelf"] #btn-shelf {
+  display: none;
+}
+
+body[data-view="shelf"] #shelf-view {
+  height: 100%;
+}
+
+/* 主区内容顶到窗口最上方：标题行落在窗控条（48px）内靠左，与右侧窗控按钮同排 */
+body[data-view="shelf"] #shelf-main {
+  padding-top: 0;
+}
+
+/* 应用品牌标识 */
+#app-brand {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent);
+  cursor: default;
+  flex-shrink: 0;
+}
+
+/* 顶栏底部阅读进度细条：宽度 = 阅读进度百分比（main.ts 写入），
+   替代肉眼盯数字，一眼看清读到哪 */
+#progress-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0%;
+  background: var(--accent);
+  opacity: 0.85;
+  transition: width 0.25s var(--ease), opacity var(--dur) ease;
+  pointer-events: none;
+}
+
+/* 当前位置有书签时的右上角旗标（半透明，不拦截点击） */
+#bookmark-flag {
+  position: absolute;
+  top: 0;
+  right: 28px;
+  width: 26px;
+  height: 62px;
+  background: var(--accent);
+  opacity: 0.72;
+  /* 底部内凹的缎带形状 */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 14px), 0 100%);
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* ── 窗口控制按钮（最小化 / 最大化 / 关闭）── */
+#win-controls {
+  align-self: stretch;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.win-btn {
+  width: 46px;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 0;
+}
+
+.win-btn:hover {
+  background: color-mix(in srgb, var(--fg) 12%, transparent);
+  color: var(--fg);
+}
+
+.win-btn.close:hover {
+  background: #e81123;
+  color: #fff;
+}
+
+/* 关闭键红色悬停块的外上角随窗口圆角（对齐 Windows 原生按钮行为）：
+   书架视图 #topbar 为 absolute 定位，逃逸 body 的圆角裁切，需自带圆角；
+   阅读/统计视图在流内由 body 裁切，此圆角与其一致无副作用 */
+.win-btn.close {
+  border-top-right-radius: 8px;
+}
+
+body.win-maximized .win-btn.close {
+  border-top-right-radius: 0;
+}
+
+.book-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--fg);
+}
+
+.percent {
+  font-size: 12px;
+  color: var(--fg-muted);
+  min-width: 56px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 悬停进度数字：变色提示可滚轮快速翻页 */
+.percent:hover {
+  color: var(--accent);
+}
+
+/* ── 顶栏/工具栏按钮：现代 ghost 风格 ──
+   无边框、悬停浅色填充、按压轻微收缩；icon-btn 固定正方形放 SVG，
+   tb-text 用于文字按钮；primary 保持主题色填充作为唯一强调入口 */
+.tb-btn {
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  border-radius: 8px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease,
+    scale var(--dur-fast) ease;
+}
+
+.tb-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.tb-btn.icon-btn {
+  width: 32px;
+  padding: 0;
+}
+
+.tb-btn:hover {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.tb-btn:active {
+  scale: 0.94;
+}
+
+/* 顶栏「已打开 / 已选择」第三态（如目录面板展开、查看笔记、当前缩放模式）：
+   主题色低饱和填充 + 主题色图标，随换肤自适应 */
+.tb-btn.tb-active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.tb-btn.tb-active:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* 当前位置已有书签：书签图标填充主题色（title 由 main.ts 同步为「移除书签」） */
+.tb-btn.marked {
+  color: var(--accent);
+}
+
+.tb-btn.marked svg path:first-child {
+  fill: currentColor;
+}
+
+/* 窄窗收纳：低频按钮整体隐藏（main.ts::relayoutTopbar），保持其余按钮原大小 */
+.tb-collapsed {
+  display: none !important;
+}
+
+.tb-right {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 主布局 */
+#layout {
+  display: flex;
+  height: calc(100% - 48px);
+}
+

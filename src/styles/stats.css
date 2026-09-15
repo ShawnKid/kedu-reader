@@ -1,0 +1,347 @@
+/* ============================================================
+   统计视图（需求 5）
+   ============================================================ */
+
+#stats-view {
+  height: calc(100% - 48px);
+  overflow-y: auto;
+  padding: 16px 24px;
+}
+
+#stats-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#stats-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+#stats-body {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+#st-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.st-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.st-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.st-label {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.st-section {
+  margin-bottom: 28px;
+}
+
+.st-section h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--fg-muted);
+}
+
+/* 365 天日历热力图（GitHub contributions 风格）；约 53 列，窄窗横向滚动 */
+#st-heatmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+/* 行标签列：与网格同规格（7 行 × 12px + 3px 间隙） */
+#st-heatmap-labels {
+  display: grid;
+  grid-template-rows: repeat(7, 12px);
+  gap: 3px;
+  padding-top: 1px;
+}
+
+#st-heatmap-labels span {
+  font-size: 10px;
+  line-height: 12px;
+  color: var(--fg-muted);
+}
+
+#st-chart {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 12px);
+  grid-auto-columns: 12px;
+  gap: 3px;
+}
+
+#st-chart > span:not(.hm-cell) {
+  width: 12px;
+  height: 12px;
+  visibility: hidden; /* 星期对齐占位，保持行列结构 */
+}
+
+.hm-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--border) 45%, var(--bg-soft));
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+/* 5 档强度：accent 派生，4 主题自动适配 */
+.hm-1 {
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg-soft));
+  box-shadow: none;
+}
+
+.hm-2 {
+  background: color-mix(in srgb, var(--accent) 42%, var(--bg-soft));
+  box-shadow: none;
+}
+
+.hm-3 {
+  background: color-mix(in srgb, var(--accent) 68%, transparent);
+  box-shadow: none;
+}
+
+.hm-4 {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+/* 书籍排行 */
+.st-book-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.st-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.st-rank.top {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.st-book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.st-book-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.st-book-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.st-book-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.st-book-time {
+  font-size: 12px;
+  color: var(--fg-muted);
+  flex-shrink: 0;
+}
+
+.st-empty {
+  color: var(--fg-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 32px 0;
+}
+
+/* 习惯卡行（第二行：连续/总天数/日均/峰值），与汇总卡贴近 */
+#st-cards-habit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin: -14px 0 24px;
+}
+
+/* 双列区：左时段环形图，右会话与速度（窄窗降级单列） */
+#st-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  #st-duo {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 24 小时时段环形图 */
+#st-donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+#st-donut {
+  flex-shrink: 0;
+  width: 220px;
+  height: 220px;
+}
+
+.st-donut-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.st-donut-seg {
+  transition: opacity 0.15s;
+  cursor: default;
+}
+
+.st-donut-seg:hover {
+  opacity: 0.78;
+}
+
+.st-donut-sub {
+  font-size: 11px;
+  fill: var(--fg-muted);
+}
+
+.st-donut-total {
+  font-size: 15px;
+  font-weight: 700;
+  fill: var(--fg);
+}
+
+#st-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.st-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--fg);
+}
+
+.st-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 会话与速度小卡 */
+#st-session-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.st-mini {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.st-mini-num {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.st-mini-label {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+/* 分布横条（题材/格式）：名称右对齐 · 比例条 · 时长 */
+.st-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 4px;
+}
+
+.st-bar-name {
+  width: 96px;
+  font-size: 12px;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.st-bar-row .st-book-bar {
+  flex: 1;
+  margin-top: 0;
+}
+
+.st-bar-row .st-book-bar-fill {
+  background: color-mix(in srgb, var(--accent) 72%, transparent);
+}
+
+/* 笔记 / 书签底行 */
+#st-notes-line {
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 12px;
+  padding: 4px 0 16px;
+}
+

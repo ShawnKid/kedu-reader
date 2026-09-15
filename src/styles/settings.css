@@ -1,0 +1,355 @@
+/* ============================================================
+   独立设置窗口（label=settings，DOM 由 settings-window.ts 构建）
+   ============================================================ */
+
+body.settings-page {
+  display: flex;
+  flex-direction: column;
+}
+
+#sw-titlebar {
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 14px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 设置窗口标题栏的关闭按钮：撑满标题栏高度，命中区域更大 */
+#sw-titlebar .win-btn {
+  width: 40px;
+  height: 40px;
+}
+
+.sw-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--fg-muted);
+}
+
+#sw-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 设置分区卡片：每个分区（阅读/书架/存储/关于）一张圆角卡，建立清晰层次 */
+.sw-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sw-heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: var(--fg-muted);
+}
+
+.sw-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sw-label {
+  width: 100px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+.sw-row input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.sw-val {
+  min-width: 56px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sw-row .theme-row {
+  justify-content: flex-start;
+}
+
+/* 分页强制两栏开关行：复选框 + 弱化说明文字 */
+.sw-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+
+.sw-check input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* 设置页统一按钮：与顶栏 .tb-btn 同 ghost 视觉语言，固定高度与最小宽度保证各行按钮对齐 */
+.sw-btn {
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 0 14px;
+  height: 30px;
+  min-width: 84px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease,
+    scale var(--dur-fast) ease;
+}
+
+.sw-btn:hover {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.sw-btn:active {
+  scale: 0.96;
+}
+
+.sw-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* 设置页下拉框（正文字体选择）：与 .sw-btn 同视觉语言 */
+.sw-select {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.sw-select:hover {
+  border-color: var(--accent);
+}
+
+/* 空占位列：让行尾按钮与右侧值列（.sw-val）右对齐 */
+.sw-flex {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 存储区文本列（路径/占用）：单行省略，悬停 title 看全路径 */
+.sw-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* 缓存目录行：路径 + 行内提示（重启生效/错误）上下排布，hidden 时不占高度 */
+.sw-col2 {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sw-col2 .sw-path {
+  flex: none;
+}
+
+.sw-hint {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.sw-hint.error {
+  color: var(--danger);
+}
+
+/* 关于区：作者与联系方式，弱化展示 */
+.sw-about {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* 主题选择：预览小卡（微缩配色 + 名称 + 选中对勾），替代无文字的色点 */
+.theme-row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.theme-card {
+  position: relative;
+  width: 74px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, scale var(--dur-fast) ease;
+}
+
+.theme-card:hover {
+  border-color: var(--accent);
+}
+
+.theme-card:active {
+  scale: 0.96;
+}
+
+.theme-card.active {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* 微缩配色样片：背景色 + 两行文字色 + 一条强调色 */
+.tc-swatch {
+  width: 46px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 8px;
+}
+
+.tc-swatch i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.tc-swatch i:nth-child(1) {
+  width: 100%;
+  opacity: 0.55;
+}
+
+.tc-swatch i:nth-child(2) {
+  width: 60%;
+  opacity: 0.35;
+}
+
+.tc-swatch i:nth-child(3) {
+  width: 80%;
+  height: 2px;
+}
+
+.tc-name {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.theme-card.active .tc-name {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 选中对勾：右上角主题色圆点 */
+.tc-check {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-card.active .tc-check {
+  display: flex;
+}
+
+.tc-check svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* 主题样片：data-theme-pick 逐个映射该主题的核心配色 */
+.theme-card[data-theme-pick="light"] .tc-swatch { background: #ffffff; }
+.theme-card[data-theme-pick="light"] .tc-swatch i { background: #1f2329; }
+.theme-card[data-theme-pick="light"] .tc-swatch i:nth-child(3) { background: #2563eb; }
+.theme-card[data-theme-pick="dark"] .tc-swatch { background: #17181c; }
+.theme-card[data-theme-pick="dark"] .tc-swatch i { background: #d7dae0; }
+.theme-card[data-theme-pick="dark"] .tc-swatch i:nth-child(3) { background: #5b9dff; }
+.theme-card[data-theme-pick="sepia"] .tc-swatch { background: #f4ecd8; }
+.theme-card[data-theme-pick="sepia"] .tc-swatch i { background: #1f2329; }
+.theme-card[data-theme-pick="sepia"] .tc-swatch i:nth-child(3) { background: #b07d2b; }
+.theme-card[data-theme-pick="green"] .tc-swatch { background: #d9eedd; }
+.theme-card[data-theme-pick="green"] .tc-swatch i { background: #1f2329; }
+.theme-card[data-theme-pick="green"] .tc-swatch i:nth-child(3) { background: #2e7d4f; }
+
+/* 字号步进器（−/+）：与滑杆同行的快捷微调 */
+.sw-step {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease,
+    scale var(--dur-fast) ease;
+}
+
+.sw-step:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sw-step:active {
+  scale: 0.92;
+}
+

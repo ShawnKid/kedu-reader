@@ -1,0 +1,76 @@
+/* ============================================================
+   CSS 变量主题系统：日间 / 夜间 / 护眼 / 护眼绿（body[data-theme] 换肤）
+   ============================================================ */
+
+:root {
+  --reader-font-size: 18px;
+  --reader-line-height: 1.6;
+  --reader-margin: 32px;
+  /* ── 动效令牌：全局统一节奏（150–300ms，ease-out 入场曲线） ── */
+  --dur-fast: 150ms;
+  --dur: 200ms;
+  --dur-slow: 280ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 日间（默认） */
+body[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-soft: #f5f6f8;
+  --fg: #1f2329;
+  --fg-muted: #6b7280;
+  --accent: #2563eb;
+  --border: #e5e7eb;
+  --shadow: rgba(0, 0, 0, 0.08);
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #f7a529;
+  color-scheme: light;
+}
+
+/* 夜间 */
+body[data-theme="dark"] {
+  --bg: #17181c;
+  --bg-soft: #1f2127;
+  --fg: #d7dae0;
+  --fg-muted: #8b909a;
+  --accent: #5b9dff;
+  --border: #2c2f36;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --danger: #f87171;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  color-scheme: dark;
+}
+
+/* 护眼（米黄） */
+body[data-theme="sepia"] {
+  --bg: #f4ecd8;
+  --bg-soft: #ece2c8;
+  --fg: #1f2329;
+  --fg-muted: #8d8270;
+  --accent: #b07d2b;
+  --border: #ddd0b0;
+  --shadow: rgba(120, 90, 30, 0.15);
+  --danger: #b91c1c;
+  --success: #15803d;
+  --warning: #b45309;
+  color-scheme: light;
+}
+
+/* 护眼绿（淡豆沙绿） */
+body[data-theme="green"] {
+  --bg: #d9eedd;
+  --bg-soft: #cde6d2;
+  --fg: #1f2329;
+  --fg-muted: #6b8571;
+  --accent: #2e7d4f;
+  --border: #b4d3ba;
+  --shadow: rgba(35, 95, 55, 0.13);
+  --danger: #b91c1c;
+  --success: #15803d;
+  --success-bar: #22c55e; /* 亮绿：与豆沙绿 accent (#2e7d4f) 拉开明度/饱和度差 */
+  --warning: #b45309;
+  color-scheme: light;
+}
+

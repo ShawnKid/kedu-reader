@@ -1,0 +1,13 @@
+/* 按原 styles.css 连续区段拆分；@import 顺序 = 原文件顺序，不改规则与级联。 */
+@import "./styles/theme.css";
+@import "./styles/base.css";
+@import "./styles/toc.css";
+@import "./styles/reader.css";
+@import "./styles/settings.css";
+@import "./styles/shelf.css";
+@import "./styles/stats.css";
+@import "./styles/pdf.css";
+@import "./styles/annotations.css";
+@import "./styles/genre.css";
+@import "./styles/cover.css";
+@import "./styles/search.css";
