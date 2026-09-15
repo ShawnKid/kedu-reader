@@ -128,6 +128,7 @@ scripts/       构建辅助
 
 ## 致谢
 
+- **玉枫同志** — 感谢你对产品 UI 提出的宝贵建议。  
 - [foliate-js](https://github.com/johnfactotum/foliate-js)（MIT）— Copyright (c) 2022 John Factotum。MOBI 等解析按其公开实现对齐语义，源码内有注明。  
 - [Tauri](https://tauri.app)、[pdf.js](https://mozilla.github.io/pdf.js/) 及其他开源依赖。
 
